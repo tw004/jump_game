@@ -100,6 +100,10 @@
 		var count = 0; //animate counter
 		var currFloor = renderer.height;
 		var jumpMode = "up";
+		var gameState = "playing";
+
+		//listening keyboard
+		$(document).keydown(onKeyDown);
 
 		//physical parameter
 		var gravity = 0.2;
@@ -128,7 +132,19 @@
 		player.position.y = playField.height - radius;
 		playField.addChild(player);
 
-		//jump block
+
+		//ground
+		var groundBlock = new PIXI.Graphics();
+		var groundBlockWid = playField.width;
+		groundBlock.beginFill(0xFFFFFF);
+		groundBlock.drawRect(0,0, groundBlockWid ,30);
+		groundBlock.position.x = 0;
+		groundBlock.position.y = playField.height-30;
+		playField.addChild(groundBlock);
+
+
+
+		//jump block //need use object type to manage
 		var jumpBlock = new PIXI.Graphics();
 		var jumpBlockWid = 300;
 		jumpBlock.beginFill(0xFFFFFF);
@@ -145,14 +161,17 @@
 		//collision decection
 		function collDectet(){
 
+				//normal collision
+				var playerLowBondPos = player.position.y + radius;
+		if(gameState=="playing"){
 			detect(jumpBlock, player);
+			detect(groundBlock, player);
+		}
 
 
 
 			function detect(obj,player){
 
-				//normal collision
-				var playerLowBondPos = player.position.y + radius;
 				//x axi detect
 				var objLeft = obj.position.x;
 				var objRight = obj.position.x + obj.width;
@@ -160,11 +179,13 @@
 				//is about to hit?
 				if( jumpMode=="down" && player.position.x < objRight && player.position.x > objLeft){
 					//y axi detect
-					if(obj.position.y-playerLowBondPos < 5){
+					if(obj.position.y-playerLowBondPos < 1){
 							//hit
 							currFloor = obj.position.y;
 							count = 0;
 					}
+				}else if(playerLowBondPos > playField.height){//have problem here
+					gameState = "game over";
 				}
 				
 			}
@@ -172,9 +193,14 @@
 
 
 		function adjustScreen(){
+
 			if(player.position.y < 30+radius){
 				currFloor += 10;
 				jumpBlock.position.y += 10;
+				groundBlock.position.y += 10;
+				//drop element which out of bound
+				if(groundBlock.position.y > playField.height)
+					playField.removeChild(groundBlock);
 			}
 		}
 		
@@ -198,6 +224,23 @@
 			renderer.render(stage);
 		}
 
+		
+		function movePlayer(arrow){
+			if(arrow=="left")
+				player.position.x -= 10;
+			else if(arrow=="right")
+				player.position.x += 10;
+		}
+
+		function onKeyDown(event) {
+			switch (event.which) {
+				case 37: //Left arrow
+					movePlayer("left"); break;
+				case 39: //Right arrow
+					movePlayer("right"); break;
+				default: return;
+			}
+		}
 
 	}
 
