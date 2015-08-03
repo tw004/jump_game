@@ -106,8 +106,8 @@
 		$(document).keydown(onKeyDown);
 
 		//physical parameter
-		var gravity = 0.2;
-		var speed0 = -15;
+		var gravity = 1;
+		var speed0 = -30;
 
 		//set background
 		var background = new PIXI.Graphics();
@@ -125,7 +125,7 @@
 
 		//player
 		var player = new PIXI.Graphics();
-		var radius = 50;
+		var radius = 30;
 		player.beginFill(0xFFFFFF);
 		player.drawCircle(0, 0, radius);
 		player.position.x = playField.width/2;
@@ -134,28 +134,27 @@
 
 
 		//ground
+		var planes = [
+		{x:0 , y:playField.height-30 , width:playField.width},
+		{x:playField.width/2 - 150 , y:playField.height/2 , width:100},
+			];
+
 		var groundBlock = new PIXI.Graphics();
-		var groundBlockWid = playField.width;
-		groundBlock.beginFill(0xFFFFFF);
-		groundBlock.drawRect(0,0, groundBlockWid ,30);
-		groundBlock.position.x = 0;
-		groundBlock.position.y = playField.height-30;
 		playField.addChild(groundBlock);
 
 
-
-		//jump block //need use object type to manage
-		var jumpBlock = new PIXI.Graphics();
-		var jumpBlockWid = 300;
-		jumpBlock.beginFill(0xFFFFFF);
-		jumpBlock.drawRect(0,0, jumpBlockWid ,30);
-		jumpBlock.position.x = playField.width/2 - jumpBlockWid/2;
-		jumpBlock.position.y = playField.height/2;
-		playField.addChild(jumpBlock);
-
+		drawPlanes();
 
 		gameAnimate();
 
+		//draw planes
+		function drawPlanes(){
+			groundBlock.clear();
+			groundBlock.beginFill(0xFFFFFF);
+			for(plane of planes){
+				groundBlock.drawRect(plane.x , plane.y , plane.width , 10);
+			}
+		}
 
 
 		//collision decection
@@ -164,8 +163,8 @@
 				//normal collision
 				var playerLowBondPos = player.position.y + radius;
 		if(gameState=="playing"){
-			detect(jumpBlock, player);
-			detect(groundBlock, player);
+			for(plane of planes)
+				detect(plane, player);
 		}
 
 
@@ -173,15 +172,15 @@
 			function detect(obj,player){
 
 				//x axi detect
-				var objLeft = obj.position.x;
-				var objRight = obj.position.x + obj.width;
+				var objLeft = obj.x;
+				var objRight = obj.x + obj.width;
 
 				//is about to hit?
 				if( jumpMode=="down" && player.position.x < objRight && player.position.x > objLeft){
 					//y axi detect
-					if(obj.position.y-playerLowBondPos < 1){
+					if(obj.y < playerLowBondPos){
 							//hit
-							currFloor = obj.position.y;
+							currFloor = obj.y+radius;
 							count = 0;
 					}
 				}else if(playerLowBondPos > playField.height){//have problem here
@@ -195,12 +194,21 @@
 		function adjustScreen(){
 
 			if(player.position.y < 30+radius){
+				drawPlanes();
 				currFloor += 10;
-				jumpBlock.position.y += 10;
-				groundBlock.position.y += 10;
 				//drop element which out of bound
-				if(groundBlock.position.y > playField.height)
-					playField.removeChild(groundBlock);
+				var newPlane = {x:Math.random()*(playField.width-100) , y:Math.random()*100 , width:100};
+
+				if(count%15==0)
+					planes.push(newPlane);
+
+				for(plane of planes){
+					plane.y += 10;
+					if(plane.y > playField.height){
+						var index = planes.indexOf(plane);
+						planes.splice(index,1);
+					}
+				}
 			}
 		}
 		
