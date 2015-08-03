@@ -99,8 +99,7 @@
 
 		var count = 0; //animate counter
 		var currFloor = renderer.height;
-		var jumpMode = "up";
-		var gameState = "playing";
+		var gameStatus = "up";
 
 		//listening keyboard
 		$(document).keydown(onKeyDown);
@@ -167,29 +166,36 @@
 
 				//normal collision
 				var playerLowBondPos = player.position.y + radius;
-		if(gameState=="playing"){
+		if(gameStatus=="down"){
 			for(plane of planes)
 				detect(plane, player);
+
+				//check game over when all planes alreay check
+				if(player.position.y > playField.height){
+						gameStatus = "game over";
+						gameOver();
+				}
 		}
 
 
 
 			function detect(obj,player){
 
-				//x axi detect
-				var objLeft = obj.x;
-				var objRight = obj.x + obj.width;
-
-				//is about to hit?
-				if( jumpMode=="down" && player.position.x < objRight && player.position.x > objLeft){
-					//y axi detect
-					if(obj.y < playerLowBondPos){
-							//hit
-							currFloor = obj.y+radius;
-							count = 0;
+				//plane is valid ? (player is above the plane)
+				if(player.position.y < obj.y){
+					//planes boundary
+					var detectErr = 30;
+					var objLeft = obj.x - detectErr;
+					var objRight = obj.x + obj.width + detectErr;
+					//is about to hit? (x axi detect)
+					if(player.position.x < objRight && player.position.x > objLeft){
+						//y axi detect
+						if(obj.y < playerLowBondPos){
+								//hit
+								currFloor = obj.y+radius;
+								count = 0;
+						}
 					}
-				}else if(playerLowBondPos > playField.height){//have problem here
-					gameState = "game over";
 				}
 				
 			}
@@ -203,9 +209,10 @@
 				currFloor += 10;
 				playerScore += 5;
 				//drop element which out of bound
-				var newPlane = {x:Math.random()*(playField.width-100) , y:Math.random()*100 , width:100};
+				var pWidth = 100;
+				var newPlane = {x:Math.random()*(playField.width-pWidth) , y:Math.random()*100 , width:pWidth};
 
-				if(count%15==0)
+				if(count%10==0)
 					planes.push(newPlane);
 
 				for(plane of planes){
@@ -222,19 +229,19 @@
 		function gameAnimate() {
 			// start the timer for the next animation loop
 			requestAnimationFrame(gameAnimate);
+			if(gameStatus!="game over"){
+				count += 1;
+				if(speed0+gravity*count > 0)
+					gameStatus = "down";
+				else
+					gameStatus = "up";
 
-			count += 1;
-			if(speed0+gravity*count > 0)
-				jumpMode = "down";
-			else
-				jumpMode = "up";
 
-
-			player.position.y = currFloor + speed0*count + 0.5*gravity*count*count - radius;
-			collDectet();
-			adjustScreen();
-			scoreText.text = 'SCORE: '+playerScore ;
-
+				player.position.y = currFloor + speed0*count + 0.5*gravity*count*count - radius;
+				collDectet();
+				adjustScreen();
+				scoreText.text = 'SCORE: '+playerScore ;
+			}
 			// this is the main render call that makes pixi draw your container and its children.
 			renderer.render(stage);
 		}
@@ -257,6 +264,15 @@
 			}
 		}
 
+	}
+
+	function gameOver(){
+		var goText = new PIXI.Text('GAME OVER', {font: 'bold italic 60px Arvo', fill: '#DF013A'});
+		goText.anchor.x = 0.5;
+		goText.anchor.y = 0.5;
+		goText.position.x = stage.width/2;
+		goText.position.y = stage.height/2;
+		stage.addChild(goText);
 	}
 
 
