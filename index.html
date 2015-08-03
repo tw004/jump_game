@@ -132,6 +132,11 @@
 		player.position.y = playField.height - radius;
 		playField.addChild(player);
 
+		//score information
+		var scoreText = new PIXI.Text("SCORE: 0", {font:'bold italic 20px Arvo', fill: '#FFFFFF'});
+		var playerScore = 0;
+		stage.addChild(scoreText);
+
 
 		//ground
 		var planes = [
@@ -196,6 +201,7 @@
 			if(player.position.y < 30+radius){
 				drawPlanes();
 				currFloor += 10;
+				playerScore += 5;
 				//drop element which out of bound
 				var newPlane = {x:Math.random()*(playField.width-100) , y:Math.random()*100 , width:100};
 
@@ -227,6 +233,7 @@
 			player.position.y = currFloor + speed0*count + 0.5*gravity*count*count - radius;
 			collDectet();
 			adjustScreen();
+			scoreText.text = 'SCORE: '+playerScore ;
 
 			// this is the main render call that makes pixi draw your container and its children.
 			renderer.render(stage);
