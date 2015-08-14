@@ -2,7 +2,7 @@
 	<head>
 		<title>jump game</title>
 		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
-		<script src="../pixi.js-3.0.6/bin/pixi.js"></script>
+		<script src="pixi.min.js"></script>
 	</head>
 	<body>
 		<div id="container">
@@ -206,7 +206,8 @@
 
 			if(player.position.y < 30+radius){
 				drawPlanes();
-				currFloor += 10;
+				//currFloor += 10;
+				currFloor += 30+radius - player.position.y;
 				playerScore += 5;
 				//drop element which out of bound
 				var pWidth = 100;
